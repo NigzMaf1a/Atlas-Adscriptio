@@ -92,7 +92,7 @@ func UpdateAccStatus(
 	db *sql.DB,
 	query string,
 	status string,
-	id int,
+	id int64,
 ) error {
 	res, err := db.ExecContext(
 		ctx,

@@ -57,5 +57,25 @@ func ReadUser(db *sql.DB) http.HandlerFunc {
 }
 
 func UpdateUserAccStatus(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {}
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := scripts.ConvertToInteger(r.PathValue("id"))
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		status, err := scripts.DecodeJSON[string](r.Body)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		if err := auth.UpdateAccStatus(ctx, db, queries.Auth_Queries.UpdateUserStatus, status, id); err != nil {
+		}
+	}
 }
