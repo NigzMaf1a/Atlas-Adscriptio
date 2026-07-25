@@ -13,9 +13,9 @@ import (
 
 func AddUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 
 		user, err := scripts.DecodeJSON[auth.User](r.Body)
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -30,6 +30,8 @@ func AddUser(db *sql.DB) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+
 		if err := scripts.EncodeJSON(w, user); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -43,11 +45,12 @@ func ReadUser(db *sql.DB) http.HandlerFunc {
 		defer cancel()
 
 		users, err := auth.ReadUsers(ctx, db, queries.Auth_Queries.ReadUsers)
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		w.Header().Set("Content-Type", "application/json")
 
 		if err := scripts.EncodeJSON(w, users); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -58,15 +61,15 @@ func ReadUser(db *sql.DB) http.HandlerFunc {
 
 func UpdateUserAccStatus(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := scripts.ConvertToInteger(r.PathValue("id"))
+		defer r.Body.Close()
 
+		id, err := scripts.ConvertToInteger(r.PathValue("id"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		status, err := scripts.DecodeJSON[string](r.Body)
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -76,6 +79,10 @@ func UpdateUserAccStatus(db *sql.DB) http.HandlerFunc {
 		defer cancel()
 
 		if err := auth.UpdateAccStatus(ctx, db, queries.Auth_Queries.UpdateUserStatus, status, id); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }
