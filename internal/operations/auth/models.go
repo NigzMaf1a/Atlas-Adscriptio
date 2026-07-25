@@ -8,6 +8,11 @@ type User struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	AccStatus string `json:"acc_status"`
-	RegStatus string `json:"reg_status"`
+	RegType   string `json:"reg_type"`
 	Location  string `json:"location"`
+}
+
+type LoginCred struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
