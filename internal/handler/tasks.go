@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/NigzMaf1a/Atlas-Adscriptio/internal/operations/roles"
+	"github.com/NigzMaf1a/Atlas-Adscriptio/internal/operations/tasks"
 	"github.com/NigzMaf1a/Atlas-Adscriptio/internal/queries"
 	"github.com/NigzMaf1a/Atlas-Adscriptio/internal/scripts"
 )
 
-func CreateRole(db *sql.DB) http.HandlerFunc {
+func CreateTask(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 
-		role, err := scripts.DecodeJSON[roles.Role](r.Body)
+		task, err := scripts.DecodeJSON[tasks.Task](r.Body)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -25,43 +25,22 @@ func CreateRole(db *sql.DB) http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
 
-		if err := roles.CreateRole(ctx, db, queries.Role_Queries.CreateRole, role); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		if err := tasks.CreateTask(ctx, db, queries.Task_Queries.CreateTask, task); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 
-		if err := scripts.EncodeJSON(w, role); err != nil {
+		if err := scripts.EncodeJSON(w, task); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 }
 
-func ReadRoles(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
-
-		roles, err := roles.ReadRoles(ctx, db, queries.Role_Queries.ReadRoles)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		if err := scripts.EncodeJSON(w, roles); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-func UpdateRoleStatus(db *sql.DB) http.HandlerFunc {
+func ReadTasks(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		id, err := scripts.ConvertToInteger(r.PathValue("id"))
@@ -71,8 +50,35 @@ func UpdateRoleStatus(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		status, err := scripts.DecodeJSON[string](r.Body)
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancel()
 
+		tasks, err := tasks.ReadTasks(ctx, db, queries.Task_Queries.ReadTasks, id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := scripts.EncodeJSON(w, tasks); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func UpdateTaskStatus(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		id, err := scripts.ConvertToInteger(r.PathValue("id"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		status, err := scripts.DecodeJSON[string](r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -81,7 +87,7 @@ func UpdateRoleStatus(db *sql.DB) http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
 
-		if err := roles.UpdateRoleStatus(ctx, db, queries.Role_Queries.UpdateRoleStatus, status, id); err != nil {
+		if err := tasks.UpdateTaskStatus(ctx, db, queries.Task_Queries.UpdateTaskStatus, status, id); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

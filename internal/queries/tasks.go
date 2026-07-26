@@ -3,6 +3,7 @@ package queries
 type TaskQueries struct {
 	CreateTask       string
 	UpdateTaskStatus string
+	ReadTasks        string
 }
 
 var Task_Queries TaskQueries = TaskQueries{
@@ -11,4 +12,5 @@ var Task_Queries TaskQueries = TaskQueries{
 				 VALUES ($1,$2,$3,$4,$5)
 	           `,
 	UpdateTaskStatus: `UPDATE tasks SET task_status = $1 WHERE id = $2`,
+	ReadTasks:        ``,
 }

@@ -4,6 +4,7 @@ type SectorQueries struct {
 	CreateSector       string
 	UpdateSectorName   string
 	UpdateSectorStatus string
+	ReadSectors        string
 }
 
 var Sector_Queries SectorQueries = SectorQueries{
@@ -13,4 +14,5 @@ var Sector_Queries SectorQueries = SectorQueries{
 				   `,
 	UpdateSectorName:   `UPDATE sectors SET sector_name = $1 WHERE id = $2`,
 	UpdateSectorStatus: `UPDATE sectors SET sector_status = $1 WHERE id = $2`,
+	ReadSectors:        `SELECT * FROM sectors`,
 }
