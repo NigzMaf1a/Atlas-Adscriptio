@@ -22,9 +22,12 @@ func ValidateStartTime(t1, t2 tasks.Task) error {
 }
 
 func CheckOverlap(tasks []tasks.Task, newTask tasks.Task) error {
-	for _,v := range tasks{
-		if err := ValidateStartTime(v,newTask); err != nil{
-			return err
+	for _, v := range tasks {
+		if err := ValidateStartTime(v, newTask); err != nil {
+			return WrapError(
+				"Error while checking task overlap",
+				err,
+			)
 		}
 	}
 	return nil
