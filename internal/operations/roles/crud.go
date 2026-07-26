@@ -35,7 +35,7 @@ func UpdateRoleStatus(
 	db *sql.DB,
 	query string,
 	status string,
-	id int,
+	id int64,
 ) error {
 	result, err := db.ExecContext(
 		ctx,
