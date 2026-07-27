@@ -33,12 +33,14 @@ func ReadTaskAllocations(
 	ctx context.Context,
 	db *sql.DB,
 	query string,
+	id int64,
 ) ([]TaskAlloc, error) {
 	allocs := []TaskAlloc{}
 
 	rows, err := db.QueryContext(
 		ctx,
 		query,
+		id,
 	)
 
 	if err != nil {

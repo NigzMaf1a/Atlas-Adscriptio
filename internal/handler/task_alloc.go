@@ -39,3 +39,33 @@ func CreateTaskAllocation(db *sql.DB) http.HandlerFunc {
 		}
 	}
 }
+
+func ReadTaskAllocations(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		id, err := scripts.ConvertToInteger(r.PathValue("id"))
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		defer cancel()
+
+		allocs, err := taskalloc.ReadTaskAllocations(ctx, db, queries.Alloc_Queries.ReadAllocs, id)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := scripts.EncodeJSON(w, allocs); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}

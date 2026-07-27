@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"log"
 	"net/http"
@@ -13,15 +12,14 @@ import (
 
 	_ "github.com/lib/pq"
 
+	mydb "github.com/NigzMaf1a/Atlas-Adscriptio/internal/db"
 	"github.com/NigzMaf1a/Atlas-Adscriptio/internal/handler"
 )
 
 func main() {
 	// Database connection
-	db, err := sql.Open(
-		"postgres",
-		"host=localhost port=5432 user=postgres password=postgres dbname=atlas sslmode=disable",
-	)
+	db, err := mydb.ConnectDB()
+
 	if err != nil {
 		log.Fatalf("opening database: %v", err)
 	}
@@ -33,13 +31,24 @@ func main() {
 
 	log.Println("Database connected.")
 
-	// Router
 	mux := http.NewServeMux()
 
-	// Authentication routes
 	mux.HandleFunc("POST /api/auth/login", handler.LoginUser(db))
+	mux.HandleFunc("POST /api/reg/post", handler.AddUser(db))
+	mux.HandleFunc("GET /api/reg/get", handler.ReadUser(db))
+	mux.HandleFunc("PATCH /api/reg/patch/{id}", handler.UpdateUserAccStatus(db))
+	mux.HandleFunc("POST /api/sect/post", handler.CreateSector(db))
+	mux.HandleFunc("GET /api/sect/get", handler.ReadSectors(db))
+	mux.HandleFunc("PATCH /api/sect/patch/{id}", handler.UpdateSectorStatus(db))
+	mux.HandleFunc("POST /api/roles/post", handler.CreateRole(db))
+	mux.HandleFunc("GET /api/roles/get", handler.ReadRoles(db))
+	mux.HandleFunc("PATCH /api/roles/patch/{id}", handler.UpdateRoleStatus(db))
+	mux.HandleFunc("POST /api/task/post", handler.CreateTask(db))
+	mux.HandleFunc("GET /api/task/get", handler.ReadTasks(db))
+	mux.HandleFunc("PATCH /api/task/patch/{id}", handler.UpdateTaskStatus(db))
+	mux.HandleFunc("POST /api/alloc/post", handler.CreateTaskAllocation(db))
+	mux.HandleFunc("GET /api/alloc/get", handler.ReadTaskAllocations(db))
 
-	// Health check
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("Server is running"))

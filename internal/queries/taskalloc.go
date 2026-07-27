@@ -2,6 +2,7 @@ package queries
 
 type TaskAllocQueries struct {
 	CreateAlloc string
+	ReadAllocs  string
 }
 
 var Alloc_Queries TaskAllocQueries = TaskAllocQueries{
@@ -9,4 +10,5 @@ var Alloc_Queries TaskAllocQueries = TaskAllocQueries{
 				  (task_id,registration_id)
 				  VALUES ($1,$2)
 	             `,
+	ReadAllocs: ``,
 }
