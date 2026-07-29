@@ -14,6 +14,7 @@ import (
 
 	mydb "github.com/NigzMaf1a/Atlas-Adscriptio/internal/db"
 	"github.com/NigzMaf1a/Atlas-Adscriptio/internal/handler"
+	"github.com/NigzMaf1a/Atlas-Adscriptio/internal/middleware"
 )
 
 func main() {
@@ -57,7 +58,7 @@ func main() {
 	// Server configuration
 	server := &http.Server{
 		Addr:              ":" + getPort(),
-		Handler:           mux,
+		Handler:           middleware.CORS(mux),
 		ReadTimeout:       10 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
 		WriteTimeout:      15 * time.Second,
