@@ -42,16 +42,17 @@ var Auth_Queries AuthQueries = AuthQueries{
 		WHERE user_id = $2`,
 
 	LoginUser: `
-		SELECT
-			user_id,
-			sector_id,
-			role_id,
-			user_name,
-			email,
-			password,
-			acc_status,
-			reg_type,
-			location
-		FROM users
-		WHERE email = $1`,
+	SELECT
+		user_id,
+		sector_id,
+		role_id,
+		user_name,
+		email,
+		password,
+		acc_status,
+		reg_type,
+		location
+	FROM users
+	WHERE email = $1
+	  AND password = $2`,
 }
