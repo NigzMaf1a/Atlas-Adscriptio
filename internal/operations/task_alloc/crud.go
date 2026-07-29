@@ -3,6 +3,7 @@ package taskalloc
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -20,12 +21,10 @@ func CreateTaskAllocation(
 	).Scan(&t.TaskAllocId)
 
 	if err != nil {
-		log.Fatal("Error while querying the database")
-		return err
+		return fmt.Errorf("create task allocation: %w", err)
 	}
 
 	log.Println("Task allocation created successfully")
-
 	return nil
 }
 
@@ -35,39 +34,34 @@ func ReadTaskAllocations(
 	query string,
 	id int64,
 ) ([]TaskAlloc, error) {
-	allocs := []TaskAlloc{}
-
 	rows, err := db.QueryContext(
 		ctx,
 		query,
 		id,
 	)
-
 	if err != nil {
-		log.Fatal("Error while querying the database")
-		return nil, err
+		return nil, fmt.Errorf("query task allocations: %w", err)
 	}
+	defer rows.Close()
+
+	var allocs []TaskAlloc
 
 	for rows.Next() {
 		var t TaskAlloc
 
-		err := rows.Scan(
-			t.RegistrationId,
-			t.TaskId,
-			t.RegistrationId,
-		)
-
-		if err != nil {
-			log.Fatal("Error occurred while scanning row")
-			return nil, err
+		if err := rows.Scan(
+			&t.TaskAllocId,
+			&t.TaskId,
+			&t.RegistrationId,
+		); err != nil {
+			return nil, fmt.Errorf("scan task allocation: %w", err)
 		}
 
 		allocs = append(allocs, t)
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Fatal("Error occurred while scanning rows")
-		return nil, err
+		return nil, fmt.Errorf("iterate task allocations: %w", err)
 	}
 
 	log.Println("Task allocations fetched successfully")

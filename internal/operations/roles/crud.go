@@ -3,7 +3,7 @@ package roles
 import (
 	"context"
 	"database/sql"
-	"errors"
+	"fmt"
 	"log"
 )
 
@@ -22,8 +22,7 @@ func CreateRole(
 	).Scan(&r.RoleId)
 
 	if err != nil {
-		log.Fatal("Error occurred while querying database")
-		return err
+		return fmt.Errorf("create role: %w", err)
 	}
 
 	log.Println("Role created successfully")
@@ -43,25 +42,17 @@ func UpdateRoleStatus(
 		status,
 		id,
 	)
-
 	if err != nil {
-		log.Fatal("Error occurred while querying the database")
-		return err
+		return fmt.Errorf("update role status: %w", err)
 	}
 
 	aff, err := result.RowsAffected()
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return sql.ErrNoRows
-		}
-		log.Fatal("Error occurred while updating row")
-		return err
+		return fmt.Errorf("retrieve affected rows: %w", err)
 	}
 
 	if aff == 0 {
-		log.Fatal(("No rows affected"))
-		return errors.New("Record not found for update")
+		return sql.ErrNoRows
 	}
 
 	log.Println("Role status updated successfully")
@@ -73,41 +64,31 @@ func ReadRoles(
 	db *sql.DB,
 	query string,
 ) ([]Role, error) {
-	roles := []Role{}
-
-	rows, err := db.QueryContext(
-		ctx,
-		query,
-	)
-
+	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
-		log.Fatal("Error while querying the database")
-		return nil, err
+		return nil, fmt.Errorf("query roles: %w", err)
 	}
-
 	defer rows.Close()
+
+	var roles []Role
 
 	for rows.Next() {
 		var r Role
 
-		err := rows.Scan(
-			r.RoleId,
-			r.SectorId,
-			r.RoleTitle,
-			r.RoleStatus,
-		)
-
-		if err != nil {
-			log.Fatal("Error occurred while scanning row")
-			return nil, err
+		if err := rows.Scan(
+			&r.RoleId,
+			&r.SectorId,
+			&r.RoleTitle,
+			&r.RoleStatus,
+		); err != nil {
+			return nil, fmt.Errorf("scan role: %w", err)
 		}
 
 		roles = append(roles, r)
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Fatal("Error occurred while scanning rows")
-		return nil, err
+		return nil, fmt.Errorf("iterate roles: %w", err)
 	}
 
 	log.Println("Roles fetched successfully")

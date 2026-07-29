@@ -3,7 +3,6 @@ package tasks
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 )
@@ -25,9 +24,7 @@ func CreateTask(
 	).Scan(&t.TaskId)
 
 	if err != nil {
-		fmt.Println("Error occurred while creating task")
-		log.Fatal(err)
-		return err
+		return fmt.Errorf("create task: %w", err)
 	}
 
 	log.Println("Task created successfully")
@@ -47,66 +44,59 @@ func UpdateTaskStatus(
 		status,
 		id,
 	)
-
 	if err != nil {
-		log.Println("Error occurred while updating task status")
-		return err
+		return fmt.Errorf("update task status: %w", err)
 	}
 
 	aff, err := result.RowsAffected()
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			log.Println("No rows updated")
-			return err
-		}
-		log.Println("Error occurred while updating task status")
-		return err
+		return fmt.Errorf("retrieve affected rows: %w", err)
 	}
 
 	if aff == 0 {
-		log.Println("No rows affected")
-		return errors.New("No records found")
+		return sql.ErrNoRows
 	}
 
+	log.Println("Task status updated successfully")
 	return nil
 }
 
-func ReadTasks(ctx context.Context, db *sql.DB, query string, id int64) ([]Task, error) {
-	tasks := []Task{}
+func ReadTasks(
+	ctx context.Context,
+	db *sql.DB,
+	query string,
+	id int64,
+) ([]Task, error) {
 	rows, err := db.QueryContext(ctx, query, id)
-
 	if err != nil {
-		log.Println("Error occurred while reading tasks")
-		return nil, err
+		return nil, fmt.Errorf("query tasks: %w", err)
 	}
-
 	defer rows.Close()
+
+	var tasks []Task
 
 	for rows.Next() {
 		var t Task
 
-		err := rows.Scan(
-			t.TaskId,
-			t.RegistrationId,
-			t.TaskDetail,
-			t.TaskStatus,
-			t.StartTime,
-			t.EndTime,
-		)
-
-		if err != nil {
-			log.Println("Error while scanning rows")
-			return nil, err
+		if err := rows.Scan(
+			&t.TaskId,
+			&t.RegistrationId,
+			&t.TaskDetail,
+			&t.TaskStatus,
+			&t.StartTime,
+			&t.EndTime,
+		); err != nil {
+			return nil, fmt.Errorf("scan task: %w", err)
 		}
 
 		tasks = append(tasks, t)
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Println("Error while scanning rows")
-		return nil, err
+		return nil, fmt.Errorf("iterate tasks: %w", err)
 	}
+
+	log.Println("Tasks fetched successfully")
 
 	return tasks, nil
 }
