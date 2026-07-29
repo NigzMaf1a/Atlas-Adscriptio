@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -20,23 +21,25 @@ func Login(
 		l.Email,
 		l.Password,
 	).Scan(
-		u.UserId,
-		u.SectorId,
-		u.RoleId,
-		u.UserName,
-		u.Email,
-		u.Password,
-		u.AccStatus,
-		u.RegType,
-		u.Location,
+		&u.UserId,
+		&u.SectorId,
+		&u.RoleId,
+		&u.UserName,
+		&u.Email,
+		&u.Password,
+		&u.AccStatus,
+		&u.RegType,
+		&u.Location,
 	)
 
 	if err != nil {
-		log.Println("Error occurred while querying the database")
-		return u, err
+		if err == sql.ErrNoRows {
+			return u, sql.ErrNoRows
+		}
+		return u, fmt.Errorf("login user: %w", err)
 	}
 
-	log.Println("User read successfully")
+	log.Println("User authenticated successfully")
 
 	return u, nil
 }

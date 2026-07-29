@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"database/sql"
-	"errors"
+	"fmt"
 	"log"
 )
 
@@ -27,12 +27,10 @@ func CreateUser(
 	).Scan(&u.UserId)
 
 	if err != nil {
-		log.Fatal("Error while querying the database")
-		return err
+		return fmt.Errorf("create user: %w", err)
 	}
 
 	log.Println("User created successfully")
-
 	return nil
 }
 
@@ -41,46 +39,36 @@ func ReadUsers(
 	db *sql.DB,
 	query string,
 ) ([]User, error) {
-	users := []User{}
-
-	rows, err := db.QueryContext(
-		ctx,
-		query,
-	)
-
+	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
-		log.Fatal("Error while querying the database")
-		return nil, err
+		return nil, fmt.Errorf("query users: %w", err)
 	}
-
 	defer rows.Close()
+
+	var users []User
 
 	for rows.Next() {
 		var u User
 
-		err := rows.Scan(
-			u.UserId,
-			u.SectorId,
-			u.RoleId,
-			u.UserName,
-			u.Email,
-			u.Password,
-			u.AccStatus,
-			u.RegType,
-			u.Location,
-		)
-
-		if err != nil {
-			log.Fatal("Error occurred while scanning row")
-			return nil, err
+		if err := rows.Scan(
+			&u.UserId,
+			&u.SectorId,
+			&u.RoleId,
+			&u.UserName,
+			&u.Email,
+			&u.Password,
+			&u.AccStatus,
+			&u.RegType,
+			&u.Location,
+		); err != nil {
+			return nil, fmt.Errorf("scan user: %w", err)
 		}
 
 		users = append(users, u)
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Fatal("Error while scanning rows")
-		return nil, err
+		return nil, fmt.Errorf("iterate users: %w", err)
 	}
 
 	log.Println("Users fetched successfully")
@@ -100,29 +88,20 @@ func UpdateAccStatus(
 		status,
 		id,
 	)
-
 	if err != nil {
-		log.Fatal("Error occurred while querying the database")
-		return err
+		return fmt.Errorf("update account status: %w", err)
 	}
 
 	aff, err := res.RowsAffected()
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return sql.ErrNoRows
-		}
-		log.Fatal("Error occurred while updating row")
-		return err
+		return fmt.Errorf("retrieve affected rows: %w", err)
 	}
 
 	if aff == 0 {
-		log.Fatal(("No rows affected"))
-		return errors.New("Record not found for update")
+		return sql.ErrNoRows
 	}
 
 	log.Println("Account status updated successfully")
-
 	return nil
 }
 
@@ -139,28 +118,19 @@ func UpdateUser(
 		user.Location,
 		user.UserId,
 	)
-
 	if err != nil {
-		log.Fatal("Error occurred while querying the database")
-		return err
+		return fmt.Errorf("update user: %w", err)
 	}
 
 	aff, err := res.RowsAffected()
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return sql.ErrNoRows
-		}
-		log.Fatal("Error occurred while updating row")
-		return err
+		return fmt.Errorf("retrieve affected rows: %w", err)
 	}
 
 	if aff == 0 {
-		log.Fatal(("No rows affected"))
-		return errors.New("Record not found for update")
+		return sql.ErrNoRows
 	}
 
 	log.Println("Account updated successfully")
-
 	return nil
 }
