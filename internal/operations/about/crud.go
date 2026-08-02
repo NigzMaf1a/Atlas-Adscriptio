@@ -15,7 +15,12 @@ func GetAbout(
 
 	rows, err := db.QueryContext(
 		ctx,
-		``,
+		`
+			SELECT
+    			about_id,
+    			about_detail
+			FROM about
+		`,
 	)
 
 	if err != nil {
@@ -59,9 +64,13 @@ func UpdateAbout(
 ) error {
 	result, err := db.ExecContext(
 		ctx,
-		``,
-		id,
+		`
+		UPDATE about
+		SET about_detail = $1
+		WHERE about_id = $2
+		`,
 		detail,
+		id,
 	)
 
 	if err != nil {

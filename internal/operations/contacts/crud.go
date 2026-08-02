@@ -15,7 +15,17 @@ func GetContacts(
 
 	rows, err := db.QueryContext(
 		ctx,
-		``,
+		`
+		SELECT
+    		contact_id,
+    		slack,
+    		instagram,
+    		x,
+    		facebook,
+    		email,
+    		phone
+		FROM contact
+		`,
 	)
 
 	if err != nil {
@@ -64,7 +74,17 @@ func UpdateContact(
 ) error {
 	result, err := db.ExecContext(
 		ctx,
-		``,
+		`
+		UPDATE contact
+		SET
+    		slack = $1,
+    		instagram = $2,
+    		x = $3,
+    		facebook = $4,
+    		email = $5,
+    		phone = $6
+		WHERE contact_id = $7
+		`,
 		&c.Slack,
 		&c.Instagram,
 		&c.X,
