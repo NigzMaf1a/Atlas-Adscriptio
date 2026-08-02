@@ -1,4 +1,4 @@
-package about
+package contacts
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"fmt"
 )
 
-func GetAbout(
+func GetContacts(
 	ctx context.Context,
 	db *sql.DB,
-) ([]About, error) {
-	about := []About{}
+) ([]Contact, error) {
+	contacts := []Contact{}
 
 	rows, err := db.QueryContext(
 		ctx,
@@ -20,55 +20,64 @@ func GetAbout(
 
 	if err != nil {
 		fmt.Println("An error occurred while querying about")
-		return about, err
+		return contacts, err
 	}
 
 	defer rows.Close()
 
 	for rows.Next() {
-		var a About
+		var c Contact
 
 		err := rows.Scan(
-			&a.AboutID,
-			&a.AboutDetail,
+			&c.ContactID,
+			&c.Slack,
+			&c.Instagram,
+			&c.X,
+			&c.Facebook,
+			&c.Email,
+			&c.Phone,
 		)
 
 		if err != nil {
 			fmt.Println("An error occurred while scanning about")
-			return about, err
+			return contacts, err
 		}
 
-		about = append(about, a)
+		contacts = append(contacts, c)
 	}
 
 	if err := rows.Err(); err != nil {
 		fmt.Println("An error occurred while scanning about")
-		return about, err
+		return contacts, err
 	}
 
-	fmt.Println("About fetched successfully")
+	fmt.Println("Contacts fetched successfully")
 
-	return about, nil
+	return contacts, nil
 }
 
-func UpdateAbout(
+func UpdateContact(
 	ctx context.Context,
 	db *sql.DB,
+	c Contact,
 	id int64,
-	detail string,
 ) error {
 	result, err := db.ExecContext(
 		ctx,
 		``,
+		&c.Slack,
+		&c.Instagram,
+		&c.X,
+		&c.Facebook,
+		&c.Email,
+		&c.Phone,
 		id,
-		detail,
 	)
 
 	if err != nil {
 		fmt.Println("An error  occurred while querying for an update")
 		return err
 	}
-
 	aff, err := result.RowsAffected()
 
 	if err != nil {
@@ -81,7 +90,7 @@ func UpdateAbout(
 		return errors.New("No rows affected")
 	}
 
-	fmt.Println("About updated successfully")
+	fmt.Println("Contact updated successfully")
 
 	return nil
 }
