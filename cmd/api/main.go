@@ -49,6 +49,10 @@ func main() {
 	mux.HandleFunc("PATCH /api/task/patch/{id}", handler.UpdateTaskStatus(db))
 	mux.HandleFunc("POST /api/alloc/post", handler.CreateTaskAllocation(db))
 	mux.HandleFunc("GET /api/alloc/get", handler.ReadTaskAllocations(db))
+	mux.HandleFunc("GET /api/about/get", handler.ReadAbout(db))
+	mux.HandleFunc("PATCH /api/about/patch", handler.UpdateAbout(db))
+	mux.HandleFunc("GET /api/contact/get", handler.ReadContacts(db))
+	mux.HandleFunc("PATCH /api/contact/patch", handler.UpdateAbout(db))
 
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
