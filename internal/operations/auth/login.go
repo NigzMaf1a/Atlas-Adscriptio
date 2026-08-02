@@ -14,6 +14,8 @@ func Login(
 	l LoginCred,
 ) (User, error) {
 	var u User
+	log.Printf("Email: %s", l.Email)
+	log.Printf("Password: %s", l.Password)
 
 	err := db.QueryRowContext(
 		ctx,
@@ -33,9 +35,12 @@ func Login(
 	)
 
 	if err != nil {
+		log.Printf("Login error: %v", err)
+
 		if err == sql.ErrNoRows {
 			return u, sql.ErrNoRows
 		}
+
 		return u, fmt.Errorf("login user: %w", err)
 	}
 
